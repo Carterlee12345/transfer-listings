@@ -641,9 +641,9 @@ function renderImgPreviews() {
   const grid = document.getElementById('imgPreviewGrid');
   grid.innerHTML = currentImages.map((url, i) => `
     <div class="img-preview-item" draggable="true" data-idx="${i}">
-      <img src="${url}" alt="">
+      <img src="${url}" alt="" draggable="false">
       <span class="img-order">${i + 1}</span>
-      <button class="img-remove" onclick="removeImg(${i});event.stopPropagation()">✕</button>
+      <button class="img-remove" draggable="false" onclick="removeImg(${i});event.stopPropagation()">✕</button>
     </div>`).join('');
 
   grid.querySelectorAll('.img-preview-item').forEach(item => {
