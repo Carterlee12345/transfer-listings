@@ -367,12 +367,12 @@ tr:hover td { background: #f9fafb; }
         <div style="font-size:.72rem;color:#9ca3af;margin-top:5px;">※ 입력 시 고객 페이지에 '3D 투어하기' 버튼이 표시됩니다.</div>
       </div>
       <div class="form-mb">
-        <label class="form-label">사진 (최대 14장)</label>
+        <label class="form-label">사진 (최대 16장)</label>
         <div class="img-upload-area" id="uploadArea" onclick="document.getElementById('imgInput').click()">
           <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgUpload(this)">
           <div id="uploadIdle">
             <div style="font-size:1.8rem;margin-bottom:6px;">📷</div>
-            <div style="font-size:.85rem;color:#6b7280;">클릭하거나 사진을 여기에 끌어다 놓으세요 (최대 14장)</div>
+            <div style="font-size:.85rem;color:#6b7280;">클릭하거나 사진을 여기에 끌어다 놓으세요 (최대 16장)</div>
           </div>
           <div id="uploadingState" style="display:none;">
             <div class="spinner" style="margin:0 auto 8px;"></div>
@@ -623,8 +623,8 @@ async function handleImgUpload(input) {
 }
 
 async function handleImgFiles(files) {
-  const remaining = 14 - currentImages.length;
-  if (!remaining) return alert('최대 14장까지 업로드할 수 있습니다.');
+  const remaining = 16 - currentImages.length;
+  if (!remaining) return alert('최대 16장까지 업로드할 수 있습니다.');
   const toUpload = files.slice(0, remaining);
 
   const area = document.getElementById('uploadArea');
