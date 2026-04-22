@@ -100,6 +100,11 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 .btn-tour:hover { background: #f0f4ff; }
 .btn-visit { width: 100%; padding: 13px; background: #0b2559; color: #fff; border: none; border-radius: 10px; font-size: .88rem; font-weight: 800; cursor: pointer; transition: all .2s; letter-spacing: -.2px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-visit:hover { background: #1a3a8f; }
+/* Kakao float button */
+.kakao-float { position: fixed; bottom: 28px; right: 28px; z-index: 999; display: flex; flex-direction: column; align-items: center; gap: 6px; text-decoration: none; }
+.kakao-float-btn { display: flex; align-items: center; gap: 8px; background: #FEE500; color: #191919; font-size: .88rem; font-weight: 800; padding: 13px 18px; border-radius: 50px; box-shadow: 0 4px 16px rgba(0,0,0,.18); transition: transform .15s, box-shadow .15s; white-space: nowrap; }
+.kakao-float-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0,0,0,.22); }
+.kakao-float-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
 /* Tour modal */
 .tour-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
 .tour-overlay.open { display: flex; }
@@ -587,5 +592,12 @@ async function submitVisit() {
 
 init();
 </script>
+
+<a class="kakao-float" href="https://open.kakao.com/o/sEXsSzSg" target="_blank" rel="noopener">
+  <div class="kakao-float-btn">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.477 3 2 6.582 2 11c0 2.83 1.674 5.332 4.227 6.898-.186.695-.674 2.517-.773 2.906-.122.487.178.48.374.35.154-.102 2.44-1.658 3.427-2.33.568.08 1.15.122 1.745.122 5.523 0 10-3.582 10-8s-4.477-8-10-8z"/></svg>
+    카톡 문의하기
+  </div>
+</a>
 </body>
 </html>
