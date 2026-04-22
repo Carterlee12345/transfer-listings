@@ -85,8 +85,11 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; background
 .btn-guaranteed { background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; }
 .btn-guaranteed:hover { background: #dbeafe; }
 .btn-guaranteed.on { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
-.btn-order { background: #f1f5f9; color: #475569; border: none; }
-.btn-order:hover { background: #e2e8f0; }
+.listing-card { cursor: grab; }
+.listing-card:active { cursor: grabbing; }
+.listing-card.dragging { opacity: .4; }
+.listing-card.drag-over { box-shadow: 0 0 0 2.5px #1e3a8a; }
+.drag-handle { display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 1.1rem; padding: 4px; cursor: grab; margin-bottom: 4px; }
 .featured-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: .68rem; font-weight: 800; padding: 3px 9px; border-radius: 5px; position: absolute; top: 8px; right: 8px; letter-spacing: .2px; }
 
 /* Table */
@@ -491,9 +494,10 @@ function renderAdminListings() {
   const grid = document.getElementById('listingGrid');
   if (!adminListings.length) { grid.innerHTML = '<div style="color:#9ca3af;font-size:.9rem;padding:20px;">등록된 매물이 없습니다.</div>'; return; }
   grid.innerHTML = adminListings.map((l, idx) => `
-    <div class="listing-card" id="lcard-${l.id}">
+    <div class="listing-card" draggable="true" data-idx="${idx}" id="lcard-${l.id}">
+      <div class="drag-handle">⠿⠿⠿</div>
       <div class="listing-thumb" style="position:relative;">
-        ${l.images?.[0] ? `<img src="${l.images[0]}" alt="">` : '<div class="listing-thumb-placeholder">🏠</div>'}
+        ${l.images?.[0] ? `<img src="${l.images[0]}" alt="" draggable="false">` : '<div class="listing-thumb-placeholder">🏠</div>'}
         <div class="listing-status ${l.active!==false?'status-active':'status-inactive'}">${l.active!==false?'게시중':'비게시'}</div>
         ${l.featured ? '<div class="featured-badge">🔥 인기매물</div>' : ''}
       </div>
@@ -505,27 +509,47 @@ function renderAdminListings() {
           <div class="lp-item">월세 <strong>${fmtKRW(l.monthlyRent)}</strong></div>
         </div>
         <div class="listing-actions">
-          <button class="btn btn-sm btn-order" onclick="moveOrder(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
-          <button class="btn btn-sm btn-order" onclick="moveOrder(${idx},1)" ${idx===adminListings.length-1?'disabled':''}>↓</button>
-          <button class="btn btn-sm btn-featured ${l.featured?'on':''}" onclick="toggleFeatured('${l.id}',${!!l.featured})">${l.featured?'★ 인기':'☆ 인기'}</button>
-          <button class="btn btn-sm btn-guaranteed ${l.guaranteed?'on':''}" onclick="toggleGuaranteed('${l.id}',${!!l.guaranteed})">${l.guaranteed?'✓ 매출보장':'+ 매출보장'}</button>
-          <button class="btn btn-sm btn-outline" onclick="openListingModal('${l.id}')">수정</button>
-          <button class="btn btn-sm btn-outline" onclick="toggleActive('${l.id}',${l.active!==false})">${l.active!==false?'비게시':'게시'}</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteListing('${l.id}')">삭제</button>
+          <button class="btn btn-sm btn-featured ${l.featured?'on':''}" draggable="false" onclick="toggleFeatured('${l.id}',${!!l.featured})">${l.featured?'★ 인기':'☆ 인기'}</button>
+          <button class="btn btn-sm btn-guaranteed ${l.guaranteed?'on':''}" draggable="false" onclick="toggleGuaranteed('${l.id}',${!!l.guaranteed})">${l.guaranteed?'✓ 매출보장':'+ 매출보장'}</button>
+          <button class="btn btn-sm btn-outline" draggable="false" onclick="openListingModal('${l.id}')">수정</button>
+          <button class="btn btn-sm btn-outline" draggable="false" onclick="toggleActive('${l.id}',${l.active!==false})">${l.active!==false?'비게시':'게시'}</button>
+          <button class="btn btn-sm btn-danger" draggable="false" onclick="deleteListing('${l.id}')">삭제</button>
         </div>
       </div>
     </div>`).join('');
-}
 
-async function moveOrder(idx, dir) {
-  const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= adminListings.length) return;
-  [adminListings[idx], adminListings[newIdx]] = [adminListings[newIdx], adminListings[idx]];
-  renderAdminListings();
-  await fetch('/api/listings?action=reorder', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-    body: JSON.stringify({ order: adminListings.map(l => l.id) })
+  grid.querySelectorAll('.listing-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text/plain', card.dataset.idx);
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      grid.querySelectorAll('.listing-card').forEach(c => {
+        c.classList.remove('dragging');
+        c.classList.remove('drag-over');
+      });
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      grid.querySelectorAll('.listing-card').forEach(c => c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+    card.addEventListener('drop', async e => {
+      e.preventDefault();
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
+      const to = parseInt(card.dataset.idx);
+      if (from === to) return;
+      const moved = adminListings.splice(from, 1)[0];
+      adminListings.splice(to, 0, moved);
+      renderAdminListings();
+      await fetch('/api/listings?action=reorder', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body: JSON.stringify({ order: adminListings.map(l => l.id) })
+      });
+    });
   });
 }
 
