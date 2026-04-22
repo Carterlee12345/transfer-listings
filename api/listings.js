@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
     if (!raw) return res.status(404).json({ error: '매물을 찾을 수 없습니다.' });
 
     const existing = JSON.parse(raw);
-    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active, featured, roomType, bathroom, stationName, walkingMinutes, tourUrl, listingNumber } = req.body || {};
+    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active, featured, guaranteed, roomType, bathroom, stationName, walkingMinutes, tourUrl, listingNumber } = req.body || {};
 
     const updated = {
       ...existing,
@@ -128,6 +128,7 @@ module.exports = async function handler(req, res) {
       ...(images !== undefined && { images }),
       ...(active !== undefined && { active }),
       ...(featured !== undefined && { featured }),
+      ...(guaranteed !== undefined && { guaranteed }),
       ...(roomType !== undefined && { roomType }),
       ...(bathroom !== undefined && { bathroom }),
       ...(stationName !== undefined && { stationName }),

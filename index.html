@@ -62,7 +62,12 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 .card.featured { border: 2px solid #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); animation: glow 2s ease-in-out infinite; }
 .card.featured:hover { box-shadow: 0 0 0 3px rgba(245,158,11,.25), 0 12px 40px rgba(245,158,11,.2); }
 @keyframes glow { 0%,100% { box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); } 50% { box-shadow: 0 0 0 5px rgba(245,158,11,.35), 0 4px 20px rgba(245,158,11,.15); } }
+.card.guaranteed { border: 2px solid #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,.12), 0 4px 12px rgba(0,0,0,.06); }
+.card.guaranteed:hover { box-shadow: 0 0 0 3px rgba(30,58,138,.22), 0 12px 40px rgba(30,58,138,.12); }
+.card.featured.guaranteed { border: 2px solid transparent; background-clip: padding-box; animation: fire-border 2s ease-in-out infinite; }
+@keyframes fire-border { 0%,100% { box-shadow: 0 0 0 3px rgba(245,158,11,.5), 0 0 12px rgba(239,68,68,.3), 0 4px 16px rgba(0,0,0,.08); } 33% { box-shadow: 0 0 0 3px rgba(239,68,68,.5), 0 0 16px rgba(30,58,138,.35), 0 4px 20px rgba(0,0,0,.08); } 66% { box-shadow: 0 0 0 3px rgba(30,58,138,.5), 0 0 16px rgba(245,158,11,.35), 0 4px 20px rgba(0,0,0,.08); } }
 .featured-label { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: .3px; z-index: 2; }
+.guaranteed-label { position: absolute; background: linear-gradient(135deg,#1e3a8a,#2563eb); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: .3px; z-index: 2; }
 
 /* Slideshow */
 .slideshow { position: relative; height: 230px; background: #e8eef7; overflow: hidden; }
@@ -381,12 +386,18 @@ function renderListings(listings) {
       (l.stationName && l.walkingMinutes) && `<div class="chip chip-station">🚇 ${l.stationName} 도보 ${Math.max(1, l.walkingMinutes - 2)}분</div>`,
     ].filter(Boolean).join('');
 
+    const cardClass = [
+      l.featured ? 'featured' : '',
+      l.guaranteed ? 'guaranteed' : ''
+    ].filter(Boolean).join(' ');
+    const labelTop = (l.featured && l.guaranteed) ? 44 : 12;
     return `
-    <div class="card${l.featured ? ' featured' : ''}" id="card-${l.id}">
+    <div class="card${cardClass ? ' '+cardClass : ''}" id="card-${l.id}">
       <div class="slideshow" id="ss-${l.id}">
         ${slides}
         ${l.featured ? '<div class="featured-label">🔥 인기매물</div>' : `<div class="loc-tag">${l.locationTag}</div>`}
-        ${l.featured ? `<div class="loc-tag" style="top:40px;">${l.locationTag}</div>` : ''}
+        ${l.guaranteed ? `<div class="guaranteed-label" style="top:${labelTop}px;left:12px;">💰 매출보장</div>` : ''}
+        ${l.featured ? `<div class="loc-tag" style="top:${l.guaranteed ? labelTop+28 : 40}px;">${l.locationTag}</div>` : ''}
         ${navBtns}${dots}${imgCount}
       </div>
       <div class="card-body">
