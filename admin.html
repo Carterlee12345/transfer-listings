@@ -114,7 +114,8 @@ tr:hover td { background: #f9fafb; }
 
 /* Image upload */
 .img-upload-area { border: 2px dashed #e5e7eb; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; }
-.img-upload-area:hover { border-color: #93c5fd; background: #f0f9ff; }
+.img-upload-area:hover, .img-upload-area.drag-over { border-color: #3b82f6; background: #eff6ff; }
+.img-upload-area.drag-over { border-style: solid; box-shadow: 0 0 0 3px rgba(59,130,246,.15); }
 .img-upload-area.uploading { border-color: #1e3a8a; background: #eff6ff; cursor: not-allowed; pointer-events: none; }
 .img-upload-area input { display: none; }
 .upload-progress { margin-top: 10px; }
@@ -371,7 +372,7 @@ tr:hover td { background: #f9fafb; }
           <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgUpload(this)">
           <div id="uploadIdle">
             <div style="font-size:1.8rem;margin-bottom:6px;">📷</div>
-            <div style="font-size:.85rem;color:#6b7280;">클릭하여 사진 추가 (최대 14장)</div>
+            <div style="font-size:.85rem;color:#6b7280;">클릭하거나 사진을 여기에 끌어다 놓으세요 (최대 14장)</div>
           </div>
           <div id="uploadingState" style="display:none;">
             <div class="spinner" style="margin:0 auto 8px;"></div>
@@ -593,6 +594,7 @@ async function openListingModal(id) {
     document.getElementById('naverMapLink').style.display = 'none';
   }
 
+  initUploadDrop();
   document.getElementById('listingOverlay').classList.add('open');
 }
 
@@ -601,8 +603,26 @@ function closeListingModal(e) {
   document.getElementById('listingOverlay').classList.remove('open');
 }
 
+function initUploadDrop() {
+  const area = document.getElementById('uploadArea');
+  area.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); if (!area.classList.contains('uploading')) area.classList.add('drag-over'); });
+  area.addEventListener('dragleave', e => { e.preventDefault(); e.stopPropagation(); area.classList.remove('drag-over'); });
+  area.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation();
+    area.classList.remove('drag-over');
+    if (area.classList.contains('uploading')) return;
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    handleImgFiles(files);
+  });
+}
+
 async function handleImgUpload(input) {
-  const files = Array.from(input.files);
+  await handleImgFiles(Array.from(input.files));
+  input.value = '';
+}
+
+async function handleImgFiles(files) {
   const remaining = 14 - currentImages.length;
   if (!remaining) return alert('최대 14장까지 업로드할 수 있습니다.');
   const toUpload = files.slice(0, remaining);
@@ -641,7 +661,6 @@ async function handleImgUpload(input) {
   idle.style.display = 'block';
   uploading.style.display = 'none';
   progressBar.style.width = '0%';
-  input.value = '';
 }
 
 function compressImage(file, maxWidth = 1200, quality = 0.82) {
