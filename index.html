@@ -59,6 +59,10 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 /* Card */
 .card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04); transition: all .25s cubic-bezier(.4,0,.2,1); cursor: pointer; border: 1px solid #e8eef7; }
 .card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(11,37,89,.13); border-color: #bfdbfe; }
+.card.featured { border: 2px solid #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); animation: glow 2s ease-in-out infinite; }
+.card.featured:hover { box-shadow: 0 0 0 3px rgba(245,158,11,.25), 0 12px 40px rgba(245,158,11,.2); }
+@keyframes glow { 0%,100% { box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); } 50% { box-shadow: 0 0 0 5px rgba(245,158,11,.35), 0 4px 20px rgba(245,158,11,.15); } }
+.featured-label { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: .3px; z-index: 2; }
 
 /* Slideshow */
 .slideshow { position: relative; height: 230px; background: #e8eef7; overflow: hidden; }
@@ -347,10 +351,11 @@ function renderListings(listings) {
     ].filter(Boolean).join('');
 
     return `
-    <div class="card" id="card-${l.id}">
+    <div class="card${l.featured ? ' featured' : ''}" id="card-${l.id}">
       <div class="slideshow" id="ss-${l.id}">
         ${slides}
-        <div class="loc-tag">${l.locationTag}</div>
+        ${l.featured ? '<div class="featured-label">🔥 인기매물</div>' : `<div class="loc-tag">${l.locationTag}</div>`}
+        ${l.featured ? `<div class="loc-tag" style="top:40px;">${l.locationTag}</div>` : ''}
         ${navBtns}${dots}${imgCount}
       </div>
       <div class="card-body">

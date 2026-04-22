@@ -19,6 +19,24 @@ function verifyToken(token) {
   return Buffer.from(payload, 'base64').toString();
 }
 
+async function getOrder() {
+  const raw = await redis(['GET', 'transfer:listingOrder']);
+  return raw ? JSON.parse(raw) : [];
+}
+
+async function sortByOrder(listings) {
+  const order = await getOrder();
+  if (!order.length) return listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  return listings.sort((a, b) => {
+    const ai = order.indexOf(a.id);
+    const bi = order.indexOf(b.id);
+    if (ai === -1 && bi === -1) return new Date(b.createdAt) - new Date(a.createdAt);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -36,7 +54,7 @@ module.exports = async function handler(req, res) {
     }));
     let listings = all.filter(Boolean).filter(l => l.active !== false);
     if (location && location !== '전체') listings = listings.filter(l => l.locationTag === location);
-    listings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    listings = await sortByOrder(listings);
     return res.status(200).json({ listings });
   }
 
@@ -68,22 +86,29 @@ module.exports = async function handler(req, res) {
       annualRevenue: Number(annualRevenue) || 0,
       images: images || [],
       active: true,
+      featured: false,
       createdAt: new Date().toISOString(),
       createdBy: email
     };
 
     await redis(['SET', `transfer:listing:${listing.id}`, JSON.stringify(listing)]);
     await redis(['SADD', 'transfer:listings', listing.id]);
+
+    // Append to order list
+    const order = await getOrder();
+    order.push(listing.id);
+    await redis(['SET', 'transfer:listingOrder', JSON.stringify(order)]);
+
     return res.status(200).json({ listing });
   }
 
-  // Update listing
+  // Update listing (includes featured toggle)
   if (req.method === 'PUT' && action === 'update' && id) {
     const raw = await redis(['GET', `transfer:listing:${id}`]);
     if (!raw) return res.status(404).json({ error: '매물을 찾을 수 없습니다.' });
 
     const existing = JSON.parse(raw);
-    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active } = req.body || {};
+    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active, featured } = req.body || {};
 
     const updated = {
       ...existing,
@@ -96,6 +121,7 @@ module.exports = async function handler(req, res) {
       ...(annualRevenue !== undefined && { annualRevenue: Number(annualRevenue) }),
       ...(images !== undefined && { images }),
       ...(active !== undefined && { active }),
+      ...(featured !== undefined && { featured }),
       updatedAt: new Date().toISOString()
     };
 
@@ -103,10 +129,26 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ listing: updated });
   }
 
+  // Reorder listings
+  if (req.method === 'POST' && action === 'reorder') {
+    const { order } = req.body || {};
+    if (!Array.isArray(order)) return res.status(400).json({ error: '잘못된 형식입니다.' });
+    await redis(['SET', 'transfer:listingOrder', JSON.stringify(order)]);
+    return res.status(200).json({ message: '순서가 저장됐습니다.' });
+  }
+
+  // Get order (admin)
+  if (req.method === 'GET' && action === 'order') {
+    const order = await getOrder();
+    return res.status(200).json({ order });
+  }
+
   // Delete listing
   if (req.method === 'DELETE' && action === 'delete' && id) {
     await redis(['DEL', `transfer:listing:${id}`]);
     await redis(['SREM', 'transfer:listings', id]);
+    const order = await getOrder();
+    await redis(['SET', 'transfer:listingOrder', JSON.stringify(order.filter(i => i !== id))]);
     return res.status(200).json({ message: '삭제됐습니다.' });
   }
 

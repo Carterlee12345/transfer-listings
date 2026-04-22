@@ -78,7 +78,13 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; background
 .listing-prices { display: flex; gap: 12px; margin-bottom: 12px; }
 .lp-item { font-size: .78rem; color: #6b7280; }
 .lp-item strong { color: #1e3a8a; }
-.listing-actions { display: flex; gap: 8px; }
+.listing-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn-featured { background: #fef9c3; color: #854d0e; border: 1.5px solid #fde68a; }
+.btn-featured:hover { background: #fde68a; }
+.btn-featured.on { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+.btn-order { background: #f1f5f9; color: #475569; border: none; }
+.btn-order:hover { background: #e2e8f0; }
+.featured-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: .68rem; font-weight: 800; padding: 3px 9px; border-radius: 5px; position: absolute; top: 8px; right: 8px; letter-spacing: .2px; }
 
 /* Table */
 table { width: 100%; border-collapse: collapse; }
@@ -403,16 +409,24 @@ function showPage(page) {
 }
 
 // Listings
+let adminListings = [];
+
 async function loadListings() {
   const res = await fetch('/api/listings');
   const { listings } = await res.json();
+  adminListings = listings;
+  renderAdminListings();
+}
+
+function renderAdminListings() {
   const grid = document.getElementById('listingGrid');
-  if (!listings.length) { grid.innerHTML = '<div style="color:#9ca3af;font-size:.9rem;padding:20px;">등록된 매물이 없습니다.</div>'; return; }
-  grid.innerHTML = listings.map(l => `
-    <div class="listing-card">
-      <div class="listing-thumb">
+  if (!adminListings.length) { grid.innerHTML = '<div style="color:#9ca3af;font-size:.9rem;padding:20px;">등록된 매물이 없습니다.</div>'; return; }
+  grid.innerHTML = adminListings.map((l, idx) => `
+    <div class="listing-card" id="lcard-${l.id}">
+      <div class="listing-thumb" style="position:relative;">
         ${l.images?.[0] ? `<img src="${l.images[0]}" alt="">` : '<div class="listing-thumb-placeholder">🏠</div>'}
         <div class="listing-status ${l.active!==false?'status-active':'status-inactive'}">${l.active!==false?'게시중':'비게시'}</div>
+        ${l.featured ? '<div class="featured-badge">🔥 인기매물</div>' : ''}
       </div>
       <div class="listing-info">
         <div class="listing-loc">📍 ${l.locationTag}</div>
@@ -422,12 +436,36 @@ async function loadListings() {
           <div class="lp-item">월세 <strong>${fmtKRW(l.monthlyRent)}</strong></div>
         </div>
         <div class="listing-actions">
+          <button class="btn btn-sm btn-order" onclick="moveOrder(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
+          <button class="btn btn-sm btn-order" onclick="moveOrder(${idx},1)" ${idx===adminListings.length-1?'disabled':''}>↓</button>
+          <button class="btn btn-sm btn-featured ${l.featured?'on':''}" onclick="toggleFeatured('${l.id}',${!!l.featured})">${l.featured?'★ 인기':'☆ 인기'}</button>
           <button class="btn btn-sm btn-outline" onclick="openListingModal('${l.id}')">수정</button>
           <button class="btn btn-sm btn-outline" onclick="toggleActive('${l.id}',${l.active!==false})">${l.active!==false?'비게시':'게시'}</button>
           <button class="btn btn-sm btn-danger" onclick="deleteListing('${l.id}')">삭제</button>
         </div>
       </div>
     </div>`).join('');
+}
+
+async function moveOrder(idx, dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= adminListings.length) return;
+  [adminListings[idx], adminListings[newIdx]] = [adminListings[newIdx], adminListings[idx]];
+  renderAdminListings();
+  await fetch('/api/listings?action=reorder', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+    body: JSON.stringify({ order: adminListings.map(l => l.id) })
+  });
+}
+
+async function toggleFeatured(id, current) {
+  await fetch(`/api/listings?action=update&id=${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+    body: JSON.stringify({ featured: !current })
+  });
+  loadListings();
 }
 
 async function toggleActive(id, current) {
