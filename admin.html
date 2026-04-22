@@ -284,11 +284,40 @@ tr:hover td { background: #f9fafb; }
     <div class="modal-body">
       <div class="form-mb">
         <label class="form-label">주소 *</label>
-        <input type="text" class="input" id="fAddress" placeholder="서울시 마포구 홍익로 1길 10, 101호">
+        <input type="text" class="input" id="fAddress" placeholder="서울시 마포구 홍익로 1길 10, 101호" oninput="updateNaverLink()">
       </div>
       <div class="form-mb">
         <label class="form-label">위치 태그 *</label>
         <select class="input" id="fLocationTag"></select>
+      </div>
+      <div class="input-row form-mb">
+        <div>
+          <label class="form-label">방 종류</label>
+          <select class="input" id="fRoomType">
+            <option value="">선택</option>
+            <option value="원룸">원룸</option>
+            <option value="투룸">투룸</option>
+            <option value="쓰리룸">쓰리룸</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">화장실</label>
+          <select class="input" id="fBathroom">
+            <option value="">선택</option>
+            <option value="1개">1개</option>
+            <option value="1.5개">1.5개</option>
+            <option value="2개">2개</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-mb">
+        <label class="form-label">가까운 역 도보 시간</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="input" id="fStationName" placeholder="홍대입구역" style="flex:1;min-width:120px;">
+          <input type="number" class="input" id="fWalkingMin" placeholder="분 (네이버 기준)" style="width:140px;" min="1">
+          <a id="naverMapLink" href="#" target="_blank" style="display:none;padding:9px 14px;background:#03c75a;color:#fff;border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none;white-space:nowrap;">네이버 지도 확인 →</a>
+        </div>
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:5px;">※ 네이버 길찾기에서 확인한 도보 분수를 입력하세요. 고객에게는 2분 차감해서 표시됩니다.</div>
       </div>
       <div class="input-row form-mb">
         <div>
@@ -515,10 +544,18 @@ async function openListingModal(id) {
     document.getElementById('fMaintenanceFee').value = listing.maintenanceFee || '';
     document.getElementById('fFacilityFee').value = listing.facilityFee || '';
     document.getElementById('fAnnualRevenue').value = listing.annualRevenue || '';
+    document.getElementById('fRoomType').value = listing.roomType || '원룸';
+    document.getElementById('fBathroom').value = listing.bathroom || '1개';
+    document.getElementById('fStationName').value = listing.stationName || '';
+    document.getElementById('fWalkingMin').value = listing.walkingMinutes || '';
     currentImages = listing.images || [];
     renderImgPreviews();
+    updateNaverLink();
   } else {
-    ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue'].forEach(f => document.getElementById(f).value = '');
+    ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue','fStationName','fWalkingMin'].forEach(f => document.getElementById(f).value = '');
+    document.getElementById('fRoomType').value = '원룸';
+    document.getElementById('fBathroom').value = '1개';
+    document.getElementById('naverMapLink').style.display = 'none';
   }
 
   document.getElementById('listingOverlay').classList.add('open');
@@ -602,6 +639,17 @@ function removeImg(i) {
   renderImgPreviews();
 }
 
+function updateNaverLink() {
+  const addr = document.getElementById('fAddress').value.trim();
+  const link = document.getElementById('naverMapLink');
+  if (addr) {
+    link.href = `https://map.naver.com/p/search/${encodeURIComponent(addr)}`;
+    link.style.display = 'inline-block';
+  } else {
+    link.style.display = 'none';
+  }
+}
+
 async function saveListing() {
   const body = {
     address: document.getElementById('fAddress').value.trim(),
@@ -611,6 +659,10 @@ async function saveListing() {
     maintenanceFee: document.getElementById('fMaintenanceFee').value,
     facilityFee: document.getElementById('fFacilityFee').value,
     annualRevenue: document.getElementById('fAnnualRevenue').value,
+    roomType: document.getElementById('fRoomType').value,
+    bathroom: document.getElementById('fBathroom').value,
+    stationName: document.getElementById('fStationName').value.trim(),
+    walkingMinutes: Number(document.getElementById('fWalkingMin').value) || 0,
     images: currentImages
   };
   if (!body.address || !body.locationTag) return alert('주소와 위치 태그를 입력하세요.');

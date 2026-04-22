@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
 
   // Create listing
   if (req.method === 'POST' && action === 'create') {
-    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images } = req.body || {};
+    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, roomType, bathroom, stationName, walkingMinutes } = req.body || {};
     if (!address || !locationTag) return res.status(400).json({ error: '주소와 위치 태그는 필수입니다.' });
 
     const listing = {
@@ -84,6 +84,10 @@ module.exports = async function handler(req, res) {
       maintenanceFee: Number(maintenanceFee) || 0,
       facilityFee: Number(facilityFee) || 0,
       annualRevenue: Number(annualRevenue) || 0,
+      roomType: roomType || '원룸',
+      bathroom: bathroom || '1개',
+      stationName: stationName || '',
+      walkingMinutes: Number(walkingMinutes) || 0,
       images: images || [],
       active: true,
       featured: false,
@@ -108,7 +112,7 @@ module.exports = async function handler(req, res) {
     if (!raw) return res.status(404).json({ error: '매물을 찾을 수 없습니다.' });
 
     const existing = JSON.parse(raw);
-    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active, featured } = req.body || {};
+    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, active, featured, roomType, bathroom, stationName, walkingMinutes } = req.body || {};
 
     const updated = {
       ...existing,
@@ -122,6 +126,10 @@ module.exports = async function handler(req, res) {
       ...(images !== undefined && { images }),
       ...(active !== undefined && { active }),
       ...(featured !== undefined && { featured }),
+      ...(roomType !== undefined && { roomType }),
+      ...(bathroom !== undefined && { bathroom }),
+      ...(stationName !== undefined && { stationName }),
+      ...(walkingMinutes !== undefined && { walkingMinutes: Number(walkingMinutes) }),
       updatedAt: new Date().toISOString()
     };
 

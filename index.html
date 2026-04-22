@@ -94,6 +94,8 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 .info-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
 .chip { background: #f1f5f9; color: #475569; font-size: .72rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
 .chip span { color: #1e293b; font-weight: 700; }
+.chip-room { background: #eff6ff; color: #1e40af; }
+.chip-station { background: #f0fdf4; color: #166534; }
 .btn-visit { width: 100%; padding: 13px; background: #0b2559; color: #fff; border: none; border-radius: 10px; font-size: .88rem; font-weight: 800; cursor: pointer; transition: all .2s; letter-spacing: -.2px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 .btn-visit:hover { background: #1a3a8f; }
 
@@ -350,6 +352,12 @@ function renderListings(listings) {
       l.annualRevenue && `<div class="chip">연매출 <span>${fmtKRW(l.annualRevenue)}</span></div>`,
     ].filter(Boolean).join('');
 
+    const roomChips = [
+      l.roomType && `<div class="chip chip-room">${l.roomType}</div>`,
+      l.bathroom && `<div class="chip chip-room">화장실 ${l.bathroom}</div>`,
+      (l.stationName && l.walkingMinutes) && `<div class="chip chip-station">🚇 ${l.stationName} 도보 ${Math.max(1, l.walkingMinutes - 2)}분</div>`,
+    ].filter(Boolean).join('');
+
     return `
     <div class="card${l.featured ? ' featured' : ''}" id="card-${l.id}">
       <div class="slideshow" id="ss-${l.id}">
@@ -360,6 +368,7 @@ function renderListings(listings) {
       </div>
       <div class="card-body">
         <div class="card-address">${l.address}</div>
+        ${roomChips ? `<div class="info-chips" style="margin-bottom:8px;">${roomChips}</div>` : ''}
         <div class="price-grid">
           <div class="price-cell">
             <div class="price-label">보증금</div>
