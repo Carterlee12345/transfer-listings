@@ -379,10 +379,15 @@ function renderListings(listings) {
       </div>
     </div>`;
   }).join('');
+
+  // 자동 슬라이드 시작
+  setTimeout(() => initAutoSlides(listings.map(l => l.id)), 100);
 }
 
 // Slideshow
 const ssState = {};
+const ssTimers = {};
+
 function getState(id) {
   if (!ssState[id]) { const slides = document.querySelectorAll(`#ss-${id} .slide`); ssState[id] = { idx: 0, total: slides.length }; }
   return ssState[id];
@@ -394,6 +399,23 @@ function updateSlide(id) {
   const s = getState(id);
   document.querySelectorAll(`#ss-${id} .slide`).forEach((el, i) => el.classList.toggle('active', i === s.idx));
   document.querySelectorAll(`#card-${id} .slide-dot`).forEach((el, i) => el.classList.toggle('active', i === s.idx));
+}
+function startAutoSlide(id) {
+  const s = getState(id);
+  if (s.total <= 1) return;
+  ssTimers[id] = setInterval(() => { s.idx = (s.idx + 1) % s.total; updateSlide(id); }, 3500);
+}
+function stopAutoSlide(id) {
+  clearInterval(ssTimers[id]);
+}
+function initAutoSlides(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(`ss-${id}`);
+    if (!el) return;
+    startAutoSlide(id);
+    el.addEventListener('mouseenter', () => stopAutoSlide(id));
+    el.addEventListener('mouseleave', () => startAutoSlide(id));
+  });
 }
 
 // Modal
