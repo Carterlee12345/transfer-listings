@@ -62,8 +62,9 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 .card.featured { border: 2px solid #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); animation: glow 2s ease-in-out infinite; }
 .card.featured:hover { box-shadow: 0 0 0 3px rgba(245,158,11,.25), 0 12px 40px rgba(245,158,11,.2); }
 @keyframes glow { 0%,100% { box-shadow: 0 0 0 3px rgba(245,158,11,.15), 0 4px 12px rgba(0,0,0,.06); } 50% { box-shadow: 0 0 0 5px rgba(245,158,11,.35), 0 4px 20px rgba(245,158,11,.15); } }
-.card.guaranteed { border: 2px solid #1e3a8a; box-shadow: 0 0 0 3px rgba(30,58,138,.12), 0 4px 12px rgba(0,0,0,.06); }
-.card.guaranteed:hover { box-shadow: 0 0 0 3px rgba(30,58,138,.22), 0 12px 40px rgba(30,58,138,.12); }
+.card.guaranteed { border: 2px solid #1e3a8a; animation: blue-glow 2s ease-in-out infinite; }
+.card.guaranteed:hover { box-shadow: 0 0 0 4px rgba(30,58,138,.3), 0 12px 40px rgba(30,58,138,.15); }
+@keyframes blue-glow { 0%,100% { box-shadow: 0 0 0 3px rgba(30,58,138,.15), 0 4px 12px rgba(0,0,0,.06); } 50% { box-shadow: 0 0 0 5px rgba(37,99,235,.4), 0 4px 20px rgba(37,99,235,.2); } }
 .card.featured.guaranteed { border: 2px solid transparent; background-clip: padding-box; animation: fire-border 2s ease-in-out infinite; }
 @keyframes fire-border { 0%,100% { box-shadow: 0 0 0 3px rgba(245,158,11,.5), 0 0 12px rgba(239,68,68,.3), 0 4px 16px rgba(0,0,0,.08); } 33% { box-shadow: 0 0 0 3px rgba(239,68,68,.5), 0 0 16px rgba(30,58,138,.35), 0 4px 20px rgba(0,0,0,.08); } 66% { box-shadow: 0 0 0 3px rgba(30,58,138,.5), 0 0 16px rgba(245,158,11,.35), 0 4px 20px rgba(0,0,0,.08); } }
 .featured-label { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg,#f59e0b,#ef4444); color: #fff; font-size: .7rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: .3px; z-index: 2; }
