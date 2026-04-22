@@ -425,6 +425,26 @@ function changeMonth(dir) {
   renderCalendar();
 }
 
+// 법정공휴일 (YYYY-MM-DD)
+const HOLIDAYS = new Set([
+  // 2025
+  '2025-01-01','2025-01-28','2025-01-29','2025-01-30',
+  '2025-03-01','2025-05-05','2025-05-06','2025-06-06',
+  '2025-08-15','2025-10-03','2025-10-05','2025-10-06','2025-10-07','2025-10-09','2025-12-25',
+  // 2026
+  '2026-01-01','2026-02-17','2026-02-18','2026-02-19',
+  '2026-03-01','2026-05-05','2026-05-24','2026-06-06',
+  '2026-08-17','2026-09-24','2026-09-25','2026-09-26',
+  '2026-10-03','2026-10-09','2026-12-25',
+  // 2027
+  '2027-01-01','2027-02-06','2027-02-07','2027-02-08',
+  '2027-03-01','2027-05-05','2027-05-13','2027-06-06',
+  '2027-08-16','2027-10-03','2027-10-09','2027-10-14','2027-10-15','2027-10-16','2027-12-25',
+]);
+
+function isHoliday(dateStr) { return HOLIDAYS.has(dateStr); }
+function isWeekend(date) { const d = date.getDay(); return d === 0 || d === 6; }
+
 function renderCalendar() {
   const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
   document.getElementById('calMonth').textContent = `${calYear}년 ${months[calMonth]}`;
@@ -432,15 +452,21 @@ function renderCalendar() {
   const today = new Date(); today.setHours(0,0,0,0);
   const firstDay = new Date(calYear, calMonth, 1).getDay();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  let html = ['일','월','화','수','목','금','토'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  let html = ['일','월','화','수','목','금','토'].map((d,i) => `<div class="cal-day-name" style="color:${i===0?'#ef4444':i===6?'#3b82f6':'#94a3b8'}">${d}</div>`).join('');
   for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty-day"></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(calYear, calMonth, d);
     const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = date.getDay();
     const isPast = date < today;
+    const isSun = dow === 0;
+    const isSat = dow === 6;
+    const isHol = isHoliday(dateStr);
+    const blocked = isPast || isSun || isSat || isHol;
     const isSelected = selectedDate === dateStr;
     const isToday = date.getTime() === today.getTime();
-    html += `<div class="cal-day${isPast?' disabled':''}${isSelected?' selected':''}${isToday&&!isSelected?' today':''}" onclick="${isPast?'':'selectDate(\''+dateStr+'\')'}">${d}</div>`;
+    const color = isSelected ? '' : (isSun || isHol) ? 'color:#ef4444;' : isSat ? 'color:#3b82f6;' : '';
+    html += `<div class="cal-day${blocked?' disabled':''}${isSelected?' selected':''}${isToday&&!isSelected?' today':''}" style="${color}" onclick="${blocked?'':'selectDate(\''+dateStr+'\')'}" title="${isHol?'공휴일':isSun||isSat?'주말':''}">${d}</div>`;
   }
   grid.innerHTML = html;
 }
