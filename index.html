@@ -403,7 +403,7 @@ function updateSlide(id) {
 function startAutoSlide(id) {
   const s = getState(id);
   if (s.total <= 1) return;
-  ssTimers[id] = setInterval(() => { s.idx = (s.idx + 1) % s.total; updateSlide(id); }, 3500);
+  ssTimers[id] = setInterval(() => { s.idx = (s.idx + 1) % s.total; updateSlide(id); }, 2500);
 }
 function stopAutoSlide(id) {
   clearInterval(ssTimers[id]);
