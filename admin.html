@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 페이지 | Homes in Korea</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; background: #f8f9fa; color: #1a1a2e; }
+
+/* Auth screens */
+.auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.auth-card { background: #fff; border-radius: 20px; padding: 40px; width: 100%; max-width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+.auth-logo { text-align: center; margin-bottom: 28px; }
+.auth-logo-icon { width: 56px; height: 56px; background: #1e3a8a; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 10px; }
+.auth-logo h1 { font-size: 1.2rem; font-weight: 800; color: #1e3a8a; }
+.auth-logo p { font-size: .82rem; color: #9ca3af; margin-top: 2px; }
+.auth-tabs { display: flex; background: #f3f4f6; border-radius: 10px; padding: 3px; margin-bottom: 24px; }
+.auth-tab { flex: 1; text-align: center; padding: 9px; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; color: #6b7280; transition: all .2s; border: none; background: none; }
+.auth-tab.active { background: #fff; color: #1e3a8a; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: .83rem; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.form-group input { width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: .9rem; outline: none; transition: border-color .2s; }
+.form-group input:focus { border-color: #1e3a8a; }
+.btn-auth { width: 100%; padding: 13px; background: #1e3a8a; color: #fff; border: none; border-radius: 12px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: 4px; }
+.btn-auth:hover { background: #1d4ed8; }
+.auth-msg { margin-top: 12px; font-size: .83rem; text-align: center; }
+.auth-msg.error { color: #dc2626; }
+.auth-msg.success { color: #16a34a; }
+
+/* Layout */
+.admin-layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #1e3a8a; padding: 24px 0; flex-shrink: 0; position: fixed; top: 0; bottom: 0; }
+.sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.sidebar-logo span { font-size: 1rem; font-weight: 800; color: #fff; }
+.sidebar-logo p { font-size: .72rem; color: rgba(255,255,255,.5); margin-top: 2px; }
+.sidebar-nav { padding: 16px 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; font-size: .88rem; font-weight: 600; color: rgba(255,255,255,.7); cursor: pointer; transition: all .2s; border: none; background: none; width: 100%; text-align: left; }
+.nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.15); color: #fff; border-right: 3px solid #fff; }
+.nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+.sidebar-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,.1); }
+.user-info { font-size: .78rem; color: rgba(255,255,255,.6); margin-bottom: 8px; }
+.btn-logout { width: 100%; padding: 8px; background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); border: none; border-radius: 8px; font-size: .82rem; cursor: pointer; transition: all .2s; }
+.btn-logout:hover { background: rgba(255,255,255,.2); }
+
+.content { margin-left: 220px; flex: 1; padding: 32px; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 1.4rem; font-weight: 800; color: #111827; }
+.btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-size: .88rem; font-weight: 700; transition: all .2s; }
+.btn-primary { background: #1e3a8a; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-danger { background: #fee2e2; color: #dc2626; }
+.btn-danger:hover { background: #fecaca; }
+.btn-sm { padding: 6px 12px; font-size: .8rem; border-radius: 7px; }
+.btn-outline { background: #fff; border: 1.5px solid #1e3a8a; color: #1e3a8a; }
+.btn-outline:hover { background: #eff6ff; }
+
+/* Cards */
+.card { background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.06); border: 1px solid #f0f2f5; margin-bottom: 20px; }
+.card-title { font-size: .95rem; font-weight: 700; color: #374151; margin-bottom: 16px; }
+
+/* Listing cards in admin */
+.listing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.listing-card { background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; transition: box-shadow .2s; }
+.listing-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); }
+.listing-thumb { height: 160px; background: #f0f4ff; position: relative; overflow: hidden; }
+.listing-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.listing-thumb-placeholder { height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 2.5rem; }
+.listing-status { position: absolute; top: 8px; right: 8px; padding: 3px 10px; border-radius: 10px; font-size: .72rem; font-weight: 700; }
+.status-active { background: #dcfce7; color: #16a34a; }
+.status-inactive { background: #fee2e2; color: #dc2626; }
+.listing-info { padding: 14px; }
+.listing-loc { font-size: .72rem; color: #1e3a8a; font-weight: 700; margin-bottom: 4px; }
+.listing-addr { font-size: .88rem; font-weight: 700; color: #111827; margin-bottom: 10px; line-height: 1.4; }
+.listing-prices { display: flex; gap: 12px; margin-bottom: 12px; }
+.lp-item { font-size: .78rem; color: #6b7280; }
+.lp-item strong { color: #1e3a8a; }
+.listing-actions { display: flex; gap: 8px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 10px 14px; font-size: .78rem; color: #9ca3af; font-weight: 700; border-bottom: 1px solid #f0f2f5; }
+td { padding: 12px 14px; font-size: .85rem; color: #374151; border-bottom: 1px solid #f9fafb; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f9fafb; }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+.overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 20px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 22px 24px 16px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: #fff; z-index: 1; }
+.modal-title { font-size: 1.05rem; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #9ca3af; transition: color .2s; }
+.modal-close:hover { color: #374151; }
+.modal-body { padding: 20px 24px 28px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #f0f2f5; display: flex; gap: 10px; justify-content: flex-end; }
+.input { width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: .9rem; outline: none; transition: border-color .2s; }
+.input:focus { border-color: #1e3a8a; }
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-label { display: block; font-size: .82rem; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.form-mb { margin-bottom: 14px; }
+
+/* Image upload */
+.img-upload-area { border: 2px dashed #e5e7eb; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; }
+.img-upload-area:hover { border-color: #93c5fd; background: #f0f9ff; }
+.img-upload-area input { display: none; }
+.img-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.img-preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-remove { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+
+/* Locations */
+.loc-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.loc-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f9fafb; border-radius: 10px; border: 1px solid #f0f2f5; }
+.loc-name { flex: 1; font-size: .9rem; font-weight: 600; }
+.loc-add { display: flex; gap: 8px; }
+
+/* Badge */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700; }
+.badge-pending { background: #fef9c3; color: #854d0e; }
+.badge-approved { background: #dcfce7; color: #166534; }
+
+@media (max-width: 768px) {
+  .sidebar { width: 100%; height: 64px; position: fixed; top: 0; left: 0; right: 0; bottom: auto; display: flex; padding: 0; align-items: center; }
+  .sidebar-nav { display: flex; padding: 0 8px; overflow-x: auto; }
+  .sidebar-logo { display: none; }
+  .sidebar-footer { display: none; }
+  .content { margin-left: 0; margin-top: 64px; padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🏠</div>
+      <h1>Homes in Korea</h1>
+      <p>양도 매물 관리자 페이지</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">회원가입</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="loginEmail" placeholder="admin@example.com">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="loginPw" placeholder="비밀번호" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">로그인</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label>이름</label>
+        <input type="text" id="regName" placeholder="홍길동">
+      </div>
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="regEmail" placeholder="admin@example.com">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="regPw" placeholder="비밀번호">
+      </div>
+      <button class="btn-auth" onclick="doRegister()">가입 신청</button>
+    </div>
+    <div id="authMsg" class="auth-msg"></div>
+  </div>
+</div>
+
+<!-- Admin Layout -->
+<div id="adminLayout" class="admin-layout" style="display:none">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span>🏠 Homes in Korea</span>
+      <p>양도 매물 관리자</p>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('listings')"><span class="nav-icon">🏠</span>매물 관리</button>
+      <button class="nav-item" onclick="showPage('locations')"><span class="nav-icon">📍</span>위치 관리</button>
+      <button class="nav-item" onclick="showPage('visits')"><span class="nav-icon">📅</span>방문 예약</button>
+      <button class="nav-item" id="usersNavBtn" onclick="showPage('users')" style="display:none"><span class="nav-icon">👥</span>회원 승인</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info" id="userInfo"></div>
+      <button class="btn-logout" onclick="doLogout()">로그아웃</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <!-- Listings -->
+    <div class="page active" id="page-listings">
+      <div class="page-header">
+        <h1 class="page-title">매물 관리</h1>
+        <button class="btn btn-primary" onclick="openListingModal()">+ 매물 추가</button>
+      </div>
+      <div class="listing-grid" id="listingGrid"></div>
+    </div>
+
+    <!-- Locations -->
+    <div class="page" id="page-locations">
+      <div class="page-header">
+        <h1 class="page-title">위치 태그 관리</h1>
+      </div>
+      <div class="card">
+        <div class="card-title">위치 목록</div>
+        <div class="loc-list" id="locList"></div>
+        <div class="loc-add">
+          <input type="text" class="input" id="newLocInput" placeholder="새 위치 입력 (예: 성수)" style="max-width:200px">
+          <button class="btn btn-primary" onclick="addLocation()">추가</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visits -->
+    <div class="page" id="page-visits">
+      <div class="page-header">
+        <h1 class="page-title">방문 예약 내역</h1>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>매물 주소</th>
+              <th>위치</th>
+              <th>날짜</th>
+              <th>시간</th>
+              <th>고객명</th>
+              <th>연락처</th>
+              <th>접수일</th>
+            </tr>
+          </thead>
+          <tbody id="visitsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <h1 class="page-title">회원 승인 관리</h1>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>이름</th><th>이메일</th><th>가입일</th><th>상태</th><th>관리</th></tr>
+          </thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Listing Modal -->
+<div class="overlay" id="listingOverlay" onclick="closeListingModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="listingModalTitle">매물 추가</span>
+      <button class="modal-close" onclick="closeListingModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-mb">
+        <label class="form-label">주소 *</label>
+        <input type="text" class="input" id="fAddress" placeholder="서울시 마포구 홍익로 1길 10, 101호">
+      </div>
+      <div class="form-mb">
+        <label class="form-label">위치 태그 *</label>
+        <select class="input" id="fLocationTag"></select>
+      </div>
+      <div class="input-row form-mb">
+        <div>
+          <label class="form-label">보증금 (원)</label>
+          <input type="number" class="input" id="fDeposit" placeholder="5000000">
+        </div>
+        <div>
+          <label class="form-label">월세 (원)</label>
+          <input type="number" class="input" id="fMonthlyRent" placeholder="800000">
+        </div>
+      </div>
+      <div class="input-row form-mb">
+        <div>
+          <label class="form-label">관리비 (원)</label>
+          <input type="number" class="input" id="fMaintenanceFee" placeholder="100000">
+        </div>
+        <div>
+          <label class="form-label">시설비 (원)</label>
+          <input type="number" class="input" id="fFacilityFee" placeholder="50000">
+        </div>
+      </div>
+      <div class="form-mb">
+        <label class="form-label">연매출 (원)</label>
+        <input type="number" class="input" id="fAnnualRevenue" placeholder="20000000">
+      </div>
+      <div class="form-mb">
+        <label class="form-label">사진 (최대 14장)</label>
+        <div class="img-upload-area" onclick="document.getElementById('imgInput').click()">
+          <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgUpload(this)">
+          <div style="font-size:1.8rem;margin-bottom:6px;">📷</div>
+          <div style="font-size:.85rem;color:#6b7280;">클릭하여 사진 추가 (최대 14장)</div>
+        </div>
+        <div class="img-preview-grid" id="imgPreviewGrid"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeListingModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveListing()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let token = localStorage.getItem('transfer_token');
+let isMaster = false;
+let editListingId = null;
+let currentImages = [];
+let allLocations = [];
+
+async function init() {
+  if (token) {
+    const ok = await verifySession();
+    if (ok) { showAdmin(); return; }
+  }
+  document.getElementById('authScreen').style.display = 'flex';
+}
+
+async function verifySession() {
+  const res = await fetch('/api/auth?action=verify', { headers: { 'Authorization': `Bearer ${token}` } });
+  if (!res.ok) { localStorage.removeItem('transfer_token'); token = null; return false; }
+  const data = await res.json();
+  isMaster = data.isMaster;
+  document.getElementById('userInfo').textContent = data.email;
+  if (isMaster) document.getElementById('usersNavBtn').style.display = 'flex';
+  return true;
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? 'block' : 'none';
+  document.getElementById('authMsg').textContent = '';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPw').value;
+  if (!email || !password) return setAuthMsg('이메일과 비밀번호를 입력하세요.', true);
+  const res = await fetch('/api/auth?action=login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password}) });
+  const data = await res.json();
+  if (!res.ok) return setAuthMsg(data.error, true);
+  token = data.token;
+  isMaster = data.isMaster;
+  localStorage.setItem('transfer_token', token);
+  showAdmin();
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPw').value;
+  if (!name || !email || !password) return setAuthMsg('모든 항목을 입력하세요.', true);
+  const res = await fetch('/api/auth?action=register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({name, email, password}) });
+  const data = await res.json();
+  setAuthMsg(data.message || data.error, !res.ok);
+}
+
+function setAuthMsg(msg, isError) {
+  const el = document.getElementById('authMsg');
+  el.textContent = msg;
+  el.className = 'auth-msg ' + (isError ? 'error' : 'success');
+}
+
+function doLogout() {
+  localStorage.removeItem('transfer_token');
+  token = null;
+  location.reload();
+}
+
+function showAdmin() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('adminLayout').style.display = 'flex';
+  if (isMaster) document.getElementById('usersNavBtn').style.display = 'flex';
+  document.getElementById('userInfo').textContent = '';
+  loadListings();
+  loadLocations();
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  if (page === 'visits') loadVisits();
+  if (page === 'users') loadUsers();
+}
+
+// Listings
+async function loadListings() {
+  const res = await fetch('/api/listings');
+  const { listings } = await res.json();
+  const grid = document.getElementById('listingGrid');
+  if (!listings.length) { grid.innerHTML = '<div style="color:#9ca3af;font-size:.9rem;padding:20px;">등록된 매물이 없습니다.</div>'; return; }
+  grid.innerHTML = listings.map(l => `
+    <div class="listing-card">
+      <div class="listing-thumb">
+        ${l.images?.[0] ? `<img src="${l.images[0]}" alt="">` : '<div class="listing-thumb-placeholder">🏠</div>'}
+        <div class="listing-status ${l.active!==false?'status-active':'status-inactive'}">${l.active!==false?'게시중':'비게시'}</div>
+      </div>
+      <div class="listing-info">
+        <div class="listing-loc">📍 ${l.locationTag}</div>
+        <div class="listing-addr">${l.address}</div>
+        <div class="listing-prices">
+          <div class="lp-item">보증금 <strong>${fmtKRW(l.deposit)}</strong></div>
+          <div class="lp-item">월세 <strong>${fmtKRW(l.monthlyRent)}</strong></div>
+        </div>
+        <div class="listing-actions">
+          <button class="btn btn-sm btn-outline" onclick="openListingModal('${l.id}')">수정</button>
+          <button class="btn btn-sm btn-outline" onclick="toggleActive('${l.id}',${l.active!==false})">${l.active!==false?'비게시':'게시'}</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteListing('${l.id}')">삭제</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleActive(id, current) {
+  await fetch(`/api/listings?action=update&id=${id}`, { method: 'PUT', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({active: !current}) });
+  loadListings();
+}
+
+async function deleteListing(id) {
+  if (!confirm('매물을 삭제하시겠습니까?')) return;
+  await fetch(`/api/listings?action=delete&id=${id}`, { method: 'DELETE', headers: {'Authorization':`Bearer ${token}`} });
+  loadListings();
+}
+
+async function openListingModal(id) {
+  editListingId = id || null;
+  currentImages = [];
+  document.getElementById('imgPreviewGrid').innerHTML = '';
+  document.getElementById('listingModalTitle').textContent = id ? '매물 수정' : '매물 추가';
+
+  const locs = await fetch('/api/locations').then(r=>r.json()).then(d=>d.locations);
+  const sel = document.getElementById('fLocationTag');
+  sel.innerHTML = locs.map(l => `<option value="${l}">${l}</option>`).join('');
+
+  if (id) {
+    const { listing } = await fetch(`/api/listings?action=get&id=${id}`).then(r=>r.json());
+    document.getElementById('fAddress').value = listing.address;
+    sel.value = listing.locationTag;
+    document.getElementById('fDeposit').value = listing.deposit || '';
+    document.getElementById('fMonthlyRent').value = listing.monthlyRent || '';
+    document.getElementById('fMaintenanceFee').value = listing.maintenanceFee || '';
+    document.getElementById('fFacilityFee').value = listing.facilityFee || '';
+    document.getElementById('fAnnualRevenue').value = listing.annualRevenue || '';
+    currentImages = listing.images || [];
+    renderImgPreviews();
+  } else {
+    ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue'].forEach(f => document.getElementById(f).value = '');
+  }
+
+  document.getElementById('listingOverlay').classList.add('open');
+}
+
+function closeListingModal(e) {
+  if (e && e.target !== document.getElementById('listingOverlay')) return;
+  document.getElementById('listingOverlay').classList.remove('open');
+}
+
+async function handleImgUpload(input) {
+  const files = Array.from(input.files);
+  const remaining = 14 - currentImages.length;
+  if (!remaining) return alert('최대 14장까지 업로드할 수 있습니다.');
+  const toUpload = files.slice(0, remaining);
+
+  for (const file of toUpload) {
+    const base64 = await fileToBase64(file);
+    const res = await fetch('/api/images', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body: JSON.stringify({ filename: file.name, contentType: file.type, data: base64 })
+    });
+    const { url } = await res.json();
+    if (url) currentImages.push(url);
+  }
+  renderImgPreviews();
+  input.value = '';
+}
+
+function fileToBase64(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderImgPreviews() {
+  document.getElementById('imgPreviewGrid').innerHTML = currentImages.map((url, i) => `
+    <div class="img-preview-item">
+      <img src="${url}" alt="">
+      <button class="img-remove" onclick="removeImg(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removeImg(i) {
+  currentImages.splice(i, 1);
+  renderImgPreviews();
+}
+
+async function saveListing() {
+  const body = {
+    address: document.getElementById('fAddress').value.trim(),
+    locationTag: document.getElementById('fLocationTag').value,
+    deposit: document.getElementById('fDeposit').value,
+    monthlyRent: document.getElementById('fMonthlyRent').value,
+    maintenanceFee: document.getElementById('fMaintenanceFee').value,
+    facilityFee: document.getElementById('fFacilityFee').value,
+    annualRevenue: document.getElementById('fAnnualRevenue').value,
+    images: currentImages
+  };
+  if (!body.address || !body.locationTag) return alert('주소와 위치 태그를 입력하세요.');
+
+  if (editListingId) {
+    await fetch(`/api/listings?action=update&id=${editListingId}`, { method: 'PUT', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
+  } else {
+    await fetch('/api/listings?action=create', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
+  }
+
+  closeListingModal();
+  loadListings();
+}
+
+// Locations
+async function loadLocations() {
+  const res = await fetch('/api/locations');
+  const { locations } = await res.json();
+  allLocations = [...locations];
+  renderLocList();
+}
+
+function renderLocList() {
+  document.getElementById('locList').innerHTML = allLocations.map((loc, i) => `
+    <div class="loc-item">
+      <span class="loc-name">📍 ${loc}</span>
+      <button class="btn btn-sm btn-danger" onclick="removeLocation(${i})">삭제</button>
+    </div>`).join('');
+}
+
+function addLocation() {
+  const input = document.getElementById('newLocInput');
+  const name = input.value.trim();
+  if (!name) return;
+  if (allLocations.includes(name)) return alert('이미 존재하는 위치입니다.');
+  allLocations.push(name);
+  saveLocations();
+  input.value = '';
+}
+
+function removeLocation(i) {
+  if (!confirm(`'${allLocations[i]}' 위치를 삭제하시겠습니까?`)) return;
+  allLocations.splice(i, 1);
+  saveLocations();
+}
+
+async function saveLocations() {
+  await fetch('/api/locations', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({locations: allLocations}) });
+  renderLocList();
+}
+
+// Visits
+async function loadVisits() {
+  const res = await fetch('/api/visits', { headers: {'Authorization':`Bearer ${token}`} });
+  const { visits } = await res.json();
+  const tbody = document.getElementById('visitsTable');
+  if (!visits.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:24px;">방문 예약 내역이 없습니다.</td></tr>'; return; }
+  tbody.innerHTML = visits.map(v => `
+    <tr>
+      <td>${v.listingAddress || '-'}</td>
+      <td>${v.locationTag || '-'}</td>
+      <td>${v.date}</td>
+      <td>${v.time}</td>
+      <td>${v.name}</td>
+      <td>${v.phone}</td>
+      <td style="color:#9ca3af;font-size:.78rem">${new Date(v.createdAt).toLocaleDateString('ko-KR')}</td>
+    </tr>`).join('');
+}
+
+// Users (master only)
+async function loadUsers() {
+  if (!isMaster) return;
+  const res = await fetch('/api/auth?action=users', { headers: {'Authorization':`Bearer ${token}`} });
+  const { users } = await res.json();
+  const tbody = document.getElementById('usersTable');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#9ca3af;padding:24px;">가입 신청자가 없습니다.</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td style="color:#9ca3af;font-size:.78rem">${new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+      <td><span class="badge ${u.approved?'badge-approved':'badge-pending'}">${u.approved?'승인됨':'대기중'}</span></td>
+      <td>
+        ${u.approved
+          ? `<button class="btn btn-sm btn-danger" onclick="approveUser('${u.email}',false)">승인 취소</button>`
+          : `<button class="btn btn-sm btn-primary" onclick="approveUser('${u.email}',true)">승인</button>`}
+      </td>
+    </tr>`).join('');
+}
+
+async function approveUser(email, approved) {
+  await fetch('/api/auth?action=approve', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify({targetEmail: email, approved}) });
+  loadUsers();
+}
+
+function fmtKRW(n) {
+  if (!n) return '-';
+  if (n >= 100000000) return (n / 100000000).toFixed(n % 100000000 === 0 ? 0 : 1) + '억';
+  if (n >= 10000) return Math.round(n / 10000) + '만원';
+  return n.toLocaleString() + '원';
+}
+
+init();
+</script>
+</body>
+</html>

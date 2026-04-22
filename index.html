@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단기임대 양도 매물 | Homes in Korea</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Apple SD Gothic Neo', -apple-system, sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.6; }
+
+/* Header */
+.header { background: #fff; border-bottom: 1px solid #e8ecf0; padding: 0 32px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.logo-icon { width: 36px; height: 36px; background: #1e3a8a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+.logo-text { font-size: 1.1rem; font-weight: 700; color: #1e3a8a; }
+.header-actions { display: flex; gap: 8px; }
+.btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: .88rem; font-weight: 600; transition: all .2s; }
+.btn-outline { background: #fff; border: 1.5px solid #1e3a8a; color: #1e3a8a; }
+.btn-outline:hover { background: #eff6ff; }
+.btn-primary { background: #1e3a8a; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+
+/* Hero */
+.hero { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: #fff; padding: 60px 32px; text-align: center; }
+.hero h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; }
+.hero p { font-size: 1.05rem; opacity: .85; margin-bottom: 32px; }
+.hero-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.badge { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: #fff; padding: 6px 16px; border-radius: 20px; font-size: .82rem; font-weight: 600; }
+
+/* Location Tabs */
+.tabs-wrap { background: #fff; border-bottom: 1px solid #e8ecf0; position: sticky; top: 64px; z-index: 90; }
+.tabs { max-width: 1100px; margin: 0 auto; display: flex; gap: 4px; padding: 0 32px; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { padding: 14px 20px; font-size: .9rem; font-weight: 600; color: #6b7280; cursor: pointer; border: none; background: none; border-bottom: 2.5px solid transparent; white-space: nowrap; transition: all .2s; }
+.tab:hover { color: #1e3a8a; background: #f0f4ff; }
+.tab.active { color: #1e3a8a; border-bottom-color: #1e3a8a; }
+
+/* Main */
+.main { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.section-title { font-size: 1.1rem; font-weight: 700; color: #374151; }
+.count { font-size: .85rem; color: #9ca3af; }
+
+/* Listing Grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+.card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.06); transition: all .25s; cursor: pointer; border: 1px solid #f0f2f5; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 8px 32px rgba(30,58,138,.12); border-color: #bfdbfe; }
+
+/* Slideshow */
+.slideshow { position: relative; height: 220px; background: #f0f4ff; overflow: hidden; }
+.slide { position: absolute; inset: 0; opacity: 0; transition: opacity .4s; }
+.slide.active { opacity: 1; }
+.slide img { width: 100%; height: 100%; object-fit: cover; }
+.slide-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 3rem; }
+.slide-nav { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; }
+.slide-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer; transition: all .2s; }
+.slide-dot.active { background: #fff; width: 18px; border-radius: 3px; }
+.slide-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.85); border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all .2s; opacity: 0; }
+.slideshow:hover .slide-btn { opacity: 1; }
+.slide-btn:hover { background: #fff; }
+.slide-btn.prev { left: 10px; }
+.slide-btn.next { right: 10px; }
+.img-count { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.55); color: #fff; font-size: .72rem; padding: 3px 8px; border-radius: 10px; }
+
+/* Location tag */
+.loc-tag { position: absolute; top: 10px; left: 10px; background: #1e3a8a; color: #fff; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+
+/* Card body */
+.card-body { padding: 18px 20px 20px; }
+.card-address { font-size: .95rem; font-weight: 700; color: #111827; margin-bottom: 14px; line-height: 1.4; }
+.price-row { display: flex; gap: 16px; margin-bottom: 10px; }
+.price-item { flex: 1; }
+.price-label { font-size: .72rem; color: #9ca3af; font-weight: 600; margin-bottom: 2px; }
+.price-value { font-size: 1rem; font-weight: 800; color: #1e3a8a; }
+.divider { height: 1px; background: #f3f4f6; margin: 12px 0; }
+.info-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.info-item { font-size: .78rem; color: #6b7280; }
+.info-item span { color: #374151; font-weight: 600; }
+.btn-visit { width: 100%; margin-top: 14px; padding: 11px; background: #1e3a8a; color: #fff; border: none; border-radius: 10px; font-size: .9rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+.btn-visit:hover { background: #1d4ed8; }
+
+/* Empty */
+.empty { text-align: center; padding: 80px 20px; color: #9ca3af; }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty p { font-size: 1rem; }
+
+/* Modal */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px; }
+.overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 24px 24px 16px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 1.1rem; font-weight: 700; color: #111827; }
+.modal-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #9ca3af; padding: 4px; transition: color .2s; }
+.modal-close:hover { color: #374151; }
+.modal-body { padding: 20px 24px 28px; }
+
+/* Calendar */
+.calendar-section { margin-bottom: 24px; }
+.cal-label { font-size: .85rem; font-weight: 700; color: #374151; margin-bottom: 10px; }
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-month { font-size: .95rem; font-weight: 700; color: #111827; }
+.cal-btn { background: none; border: 1px solid #e5e7eb; border-radius: 6px; width: 30px; height: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.cal-btn:hover { background: #f0f4ff; border-color: #bfdbfe; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-day-name { text-align: center; font-size: .72rem; color: #9ca3af; font-weight: 600; padding: 4px 0; }
+.cal-day { text-align: center; padding: 8px 4px; border-radius: 8px; font-size: .85rem; cursor: pointer; transition: all .2s; border: 1.5px solid transparent; }
+.cal-day:hover:not(.disabled):not(.empty-day) { background: #eff6ff; border-color: #bfdbfe; }
+.cal-day.selected { background: #1e3a8a; color: #fff; }
+.cal-day.today { color: #1e3a8a; font-weight: 800; }
+.cal-day.disabled { color: #d1d5db; cursor: not-allowed; }
+.cal-day.empty-day { cursor: default; }
+
+/* Time slots */
+.time-section { margin-bottom: 24px; }
+.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.time-slot { padding: 9px 6px; text-align: center; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: .82rem; cursor: pointer; transition: all .2s; color: #374151; font-weight: 600; }
+.time-slot:hover { border-color: #93c5fd; background: #eff6ff; }
+.time-slot.selected { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: .83rem; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.form-group input { width: 100%; padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 10px; font-size: .9rem; outline: none; transition: border-color .2s; }
+.form-group input:focus { border-color: #1e3a8a; }
+.btn-submit { width: 100%; padding: 13px; background: #1e3a8a; color: #fff; border: none; border-radius: 12px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: background .2s; margin-top: 4px; }
+.btn-submit:hover { background: #1d4ed8; }
+.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+.success-msg { text-align: center; padding: 20px; }
+.success-icon { font-size: 3rem; margin-bottom: 12px; }
+.success-msg h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: #111827; }
+.success-msg p { font-size: .88rem; color: #6b7280; }
+
+@media (max-width: 640px) {
+  .hero h1 { font-size: 1.6rem; }
+  .main { padding: 24px 16px; }
+  .grid { grid-template-columns: 1fr; }
+  .header { padding: 0 16px; }
+  .tabs { padding: 0 16px; }
+  .time-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a class="logo" href="/">
+      <div class="logo-icon">🏠</div>
+      <span class="logo-text">Homes in Korea</span>
+    </a>
+    <div class="header-actions">
+      <button class="btn btn-outline" onclick="location.href='/admin'">관리자</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>단기임대 양도 매물</h1>
+  <p>검증된 단기임대 매물을 합리적인 조건으로 양도받으세요</p>
+  <div class="hero-badges">
+    <span class="badge">✓ 검증된 매물</span>
+    <span class="badge">✓ 투명한 정보 공개</span>
+    <span class="badge">✓ 방문 예약 지원</span>
+  </div>
+</section>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-loc="전체" onclick="selectTab(this, '전체')">전체</button>
+  </div>
+</div>
+
+<main class="main">
+  <div class="section-header">
+    <span class="section-title" id="sectionTitle">전체 매물</span>
+    <span class="count" id="listingCount"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- Visit Modal -->
+<div class="overlay" id="visitOverlay" onclick="closeVisitModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title">방문 예약</span>
+      <button class="modal-close" onclick="closeVisitModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody">
+      <p id="modalAddress" style="font-size:.88rem;color:#6b7280;margin-bottom:20px;"></p>
+
+      <div class="calendar-section">
+        <div class="cal-label">날짜 선택</div>
+        <div class="cal-nav">
+          <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+          <span class="cal-month" id="calMonth"></span>
+          <button class="cal-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="time-section" id="timeSection" style="display:none">
+        <div class="cal-label">시간 선택</div>
+        <div class="time-grid" id="timeGrid"></div>
+      </div>
+
+      <div id="bookingForm" style="display:none">
+        <div class="form-group">
+          <label>성함</label>
+          <input type="text" id="visitorName" placeholder="홍길동">
+        </div>
+        <div class="form-group">
+          <label>연락처</label>
+          <input type="tel" id="visitorPhone" placeholder="010-0000-0000">
+        </div>
+        <button class="btn-submit" id="submitBtn" onclick="submitVisit()">예약 확정</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentLoc = '전체';
+let currentListing = null;
+let selectedDate = null;
+let selectedTime = null;
+let calYear, calMonth;
+
+const TIME_SLOTS = ['10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30','18:00'];
+
+async function init() {
+  await loadLocations();
+  await loadListings();
+}
+
+async function loadLocations() {
+  const res = await fetch('/api/locations');
+  const { locations } = await res.json();
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = `<button class="tab active" data-loc="전체" onclick="selectTab(this,'전체')">전체</button>`;
+  locations.forEach(loc => {
+    const btn = document.createElement('button');
+    btn.className = 'tab';
+    btn.dataset.loc = loc;
+    btn.textContent = loc;
+    btn.onclick = () => selectTab(btn, loc);
+    tabs.appendChild(btn);
+  });
+}
+
+async function loadListings() {
+  const url = currentLoc === '전체' ? '/api/listings' : `/api/listings?location=${encodeURIComponent(currentLoc)}`;
+  const res = await fetch(url);
+  const { listings } = await res.json();
+  renderListings(listings);
+}
+
+function selectTab(el, loc) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentLoc = loc;
+  document.getElementById('sectionTitle').textContent = loc === '전체' ? '전체 매물' : `${loc} 매물`;
+  loadListings();
+}
+
+function renderListings(listings) {
+  const grid = document.getElementById('grid');
+  document.getElementById('listingCount').textContent = `${listings.length}개 매물`;
+
+  if (!listings.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🏠</div><p>현재 등록된 매물이 없습니다.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = listings.map(l => {
+    const imgs = l.images || [];
+    const slides = imgs.length
+      ? imgs.map((url, i) => `<div class="slide ${i===0?'active':''}" data-idx="${i}"><img src="${url}" alt="매물 이미지" loading="lazy"></div>`).join('')
+      : `<div class="slide active"><div class="slide-placeholder">🏠</div></div>`;
+    const dots = imgs.length > 1
+      ? `<div class="slide-nav">${imgs.map((_,i) => `<div class="slide-dot ${i===0?'active':''}" onclick="goSlide('${l.id}',${i},event)"></div>`).join('')}</div>`
+      : '';
+    const navBtns = imgs.length > 1
+      ? `<button class="slide-btn prev" onclick="prevSlide('${l.id}',event)">‹</button><button class="slide-btn next" onclick="nextSlide('${l.id}',event)">›</button>`
+      : '';
+    const imgCount = imgs.length > 1 ? `<div class="img-count">📷 ${imgs.length}</div>` : '';
+
+    return `
+    <div class="card" id="card-${l.id}" onclick="openVisitModal('${l.id}')">
+      <div class="slideshow" id="ss-${l.id}">
+        ${slides}
+        <div class="loc-tag">${l.locationTag}</div>
+        ${navBtns}${dots}${imgCount}
+      </div>
+      <div class="card-body">
+        <div class="card-address">${l.address}</div>
+        <div class="price-row">
+          <div class="price-item">
+            <div class="price-label">보증금</div>
+            <div class="price-value">${fmtKRW(l.deposit)}</div>
+          </div>
+          <div class="price-item">
+            <div class="price-label">월세</div>
+            <div class="price-value">${fmtKRW(l.monthlyRent)}</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="info-row">
+          ${l.maintenanceFee ? `<div class="info-item">관리비 <span>${fmtKRW(l.maintenanceFee)}</span></div>` : ''}
+          ${l.facilityFee ? `<div class="info-item">시설비 <span>${fmtKRW(l.facilityFee)}</span></div>` : ''}
+          ${l.annualRevenue ? `<div class="info-item">연매출 <span>${fmtKRW(l.annualRevenue)}</span></div>` : ''}
+        </div>
+        <button class="btn-visit" onclick="openVisitModal('${l.id}',event)">📅 방문 예약하기</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function fmtKRW(n) {
+  if (!n) return '-';
+  if (n >= 100000000) return (n / 100000000).toFixed(n % 100000000 === 0 ? 0 : 1) + '억';
+  if (n >= 10000) return Math.round(n / 10000) + '만원';
+  return n.toLocaleString() + '원';
+}
+
+// Slideshow
+const ssState = {};
+function getState(id) {
+  if (!ssState[id]) { const imgs = document.querySelectorAll(`#ss-${id} .slide`); ssState[id] = { idx: 0, total: imgs.length }; }
+  return ssState[id];
+}
+function goSlide(id, idx, e) {
+  if (e) e.stopPropagation();
+  const s = getState(id);
+  s.idx = idx;
+  updateSlide(id);
+}
+function prevSlide(id, e) { if (e) e.stopPropagation(); const s = getState(id); s.idx = (s.idx - 1 + s.total) % s.total; updateSlide(id); }
+function nextSlide(id, e) { if (e) e.stopPropagation(); const s = getState(id); s.idx = (s.idx + 1) % s.total; updateSlide(id); }
+function updateSlide(id) {
+  const s = getState(id);
+  document.querySelectorAll(`#ss-${id} .slide`).forEach((el, i) => el.classList.toggle('active', i === s.idx));
+  document.querySelectorAll(`#card-${id} .slide-dot`).forEach((el, i) => el.classList.toggle('active', i === s.idx));
+}
+
+// Visit Modal
+async function openVisitModal(id, e) {
+  if (e) e.stopPropagation();
+  const res = await fetch(`/api/listings?action=get&id=${id}`);
+  const { listing } = await res.json();
+  currentListing = listing;
+  selectedDate = null;
+  selectedTime = null;
+
+  document.getElementById('modalAddress').textContent = `📍 ${listing.address} (${listing.locationTag})`;
+  document.getElementById('timeSection').style.display = 'none';
+  document.getElementById('bookingForm').style.display = 'none';
+
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+
+  document.getElementById('visitOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeVisitModal(e) {
+  if (e && e.target !== document.getElementById('visitOverlay')) return;
+  document.getElementById('visitOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('calMonth').textContent = `${calYear}년 ${months[calMonth]}`;
+
+  const grid = document.getElementById('calGrid');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+
+  let html = ['일','월','화','수','목','금','토'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) html += `<div class="cal-day empty-day"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast = date < today;
+    const isSelected = selectedDate === dateStr;
+    const isToday = date.getTime() === today.getTime();
+    html += `<div class="cal-day ${isPast?'disabled':''} ${isSelected?'selected':''} ${isToday&&!isSelected?'today':''}" onclick="${isPast?'':'selectDate(\''+dateStr+'\')'}'">${d}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function selectDate(dateStr) {
+  selectedDate = dateStr;
+  selectedTime = null;
+  renderCalendar();
+
+  const tg = document.getElementById('timeGrid');
+  tg.innerHTML = TIME_SLOTS.map(t => `<div class="time-slot" onclick="selectTime('${t}')">${t}</div>`).join('');
+  document.getElementById('timeSection').style.display = 'block';
+  document.getElementById('bookingForm').style.display = 'none';
+}
+
+function selectTime(time) {
+  selectedTime = time;
+  document.querySelectorAll('.time-slot').forEach(el => el.classList.toggle('selected', el.textContent === time));
+  document.getElementById('bookingForm').style.display = 'block';
+  setTimeout(() => document.getElementById('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+async function submitVisit() {
+  const name = document.getElementById('visitorName').value.trim();
+  const phone = document.getElementById('visitorPhone').value.trim();
+  if (!name || !phone) return alert('성함과 연락처를 입력해주세요.');
+  if (!selectedDate || !selectedTime) return alert('날짜와 시간을 선택해주세요.');
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '예약 중...';
+
+  const res = await fetch('/api/visits', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      listingId: currentListing.id,
+      listingAddress: currentListing.address,
+      locationTag: currentListing.locationTag,
+      date: selectedDate,
+      time: selectedTime,
+      name,
+      phone
+    })
+  });
+
+  if (res.ok) {
+    document.getElementById('modalBody').innerHTML = `
+      <div class="success-msg">
+        <div class="success-icon">✅</div>
+        <h3>예약이 완료됐습니다!</h3>
+        <p>${selectedDate} ${selectedTime}<br>${currentListing.address}<br><br>곧 연락드리겠습니다. 감사합니다.</p>
+      </div>`;
+  } else {
+    btn.disabled = false;
+    btn.textContent = '예약 확정';
+    alert('예약 중 오류가 발생했습니다. 다시 시도해주세요.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
