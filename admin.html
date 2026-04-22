@@ -119,8 +119,12 @@ tr:hover td { background: #f9fafb; }
 .upload-progress-bar { height: 100%; background: linear-gradient(90deg, #1e3a8a, #3b82f6); border-radius: 99px; transition: width .3s; }
 .upload-status { font-size: .78rem; color: #1e3a8a; font-weight: 600; }
 .img-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
-.img-preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
-.img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; cursor: grab; user-select: none; transition: opacity .2s, box-shadow .2s; }
+.img-preview-item:active { cursor: grabbing; }
+.img-preview-item.dragging { opacity: .4; }
+.img-preview-item.drag-over { box-shadow: 0 0 0 2.5px #1e3a8a; }
+.img-preview-item img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.img-preview-item .img-order { position: absolute; bottom: 4px; left: 6px; background: rgba(0,0,0,.5); color: #fff; font-size: .65rem; font-weight: 700; border-radius: 4px; padding: 1px 5px; pointer-events: none; }
 .img-preview-item.uploading-slot { background: #f0f4ff; display: flex; align-items: center; justify-content: center; font-size: .7rem; color: #6b7280; flex-direction: column; gap: 4px; }
 .spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #1e3a8a; border-radius: 50%; animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -634,11 +638,41 @@ function compressImage(file, maxWidth = 1200, quality = 0.82) {
 }
 
 function renderImgPreviews() {
-  document.getElementById('imgPreviewGrid').innerHTML = currentImages.map((url, i) => `
-    <div class="img-preview-item">
+  const grid = document.getElementById('imgPreviewGrid');
+  grid.innerHTML = currentImages.map((url, i) => `
+    <div class="img-preview-item" draggable="true" data-idx="${i}">
       <img src="${url}" alt="">
+      <span class="img-order">${i + 1}</span>
       <button class="img-remove" onclick="removeImg(${i})">✕</button>
     </div>`).join('');
+
+  let dragSrc = null;
+  grid.querySelectorAll('.img-preview-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrc = item;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      grid.querySelectorAll('.img-preview-item').forEach(el => el.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      grid.querySelectorAll('.img-preview-item').forEach(el => el.classList.remove('drag-over'));
+      if (item !== dragSrc) item.classList.add('drag-over');
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!dragSrc || dragSrc === item) return;
+      const from = parseInt(dragSrc.dataset.idx);
+      const to = parseInt(item.dataset.idx);
+      const moved = currentImages.splice(from, 1)[0];
+      currentImages.splice(to, 0, moved);
+      renderImgPreviews();
+    });
+  });
 }
 
 function removeImg(i) {
