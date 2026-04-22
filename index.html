@@ -132,7 +132,7 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 .cal-day:hover:not(.disabled):not(.empty-day) { background: #eff6ff; border-color: #bfdbfe; color: #0b2559; }
 .cal-day.selected { background: #0b2559; color: #fff; border-color: #0b2559; }
 .cal-day.today:not(.selected) { color: #1d4ed8; font-weight: 900; }
-.cal-day.disabled { color: #e2e8f0; cursor: not-allowed; }
+.cal-day.disabled { color: #cbd5e1; background: #f8fafc; cursor: not-allowed; }
 .cal-day.empty-day { cursor: default; }
 
 /* Time slots */
@@ -465,7 +465,7 @@ function renderCalendar() {
     const blocked = isPast || isSun || isSat || isHol;
     const isSelected = selectedDate === dateStr;
     const isToday = date.getTime() === today.getTime();
-    const color = isSelected ? '' : (isSun || isHol) ? 'color:#ef4444;' : isSat ? 'color:#3b82f6;' : '';
+    const color = (!blocked && !isSelected) ? ((isSun || isHol) ? 'color:#ef4444;' : isSat ? 'color:#3b82f6;' : '') : '';
     html += `<div class="cal-day${blocked?' disabled':''}${isSelected?' selected':''}${isToday&&!isSelected?' today':''}" style="${color}" onclick="${blocked?'':'selectDate(\''+dateStr+'\')'}" title="${isHol?'공휴일':isSun||isSat?'주말':''}">${d}</div>`;
   }
   grid.innerHTML = html;
