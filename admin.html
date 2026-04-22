@@ -344,6 +344,11 @@ tr:hover td { background: #f9fafb; }
         <input type="number" class="input" id="fAnnualRevenue" placeholder="20000000">
       </div>
       <div class="form-mb">
+        <label class="form-label">3D 투어 링크 (선택)</label>
+        <input type="url" class="input" id="fTourUrl" placeholder="https://...">
+        <div style="font-size:.72rem;color:#9ca3af;margin-top:5px;">※ 입력 시 고객 페이지에 '3D 투어하기' 버튼이 표시됩니다.</div>
+      </div>
+      <div class="form-mb">
         <label class="form-label">사진 (최대 14장)</label>
         <div class="img-upload-area" id="uploadArea" onclick="document.getElementById('imgInput').click()">
           <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgUpload(this)">
@@ -548,6 +553,7 @@ async function openListingModal(id) {
     document.getElementById('fBathroom').value = listing.bathroom || '1개';
     document.getElementById('fStationName').value = listing.stationName || '';
     document.getElementById('fWalkingMin').value = listing.walkingMinutes || '';
+    document.getElementById('fTourUrl').value = listing.tourUrl || '';
     currentImages = listing.images || [];
     renderImgPreviews();
     updateNaverLink();
@@ -555,6 +561,7 @@ async function openListingModal(id) {
     ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue','fStationName','fWalkingMin'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('fRoomType').value = '원룸';
     document.getElementById('fBathroom').value = '1개';
+    document.getElementById('fTourUrl').value = '';
     document.getElementById('naverMapLink').style.display = 'none';
   }
 
@@ -663,6 +670,7 @@ async function saveListing() {
     bathroom: document.getElementById('fBathroom').value,
     stationName: document.getElementById('fStationName').value.trim(),
     walkingMinutes: Number(document.getElementById('fWalkingMin').value) || 0,
+    tourUrl: document.getElementById('fTourUrl').value.trim(),
     images: currentImages
   };
   if (!body.address || !body.locationTag) return alert('주소와 위치 태그를 입력하세요.');
