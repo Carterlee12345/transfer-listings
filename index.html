@@ -342,7 +342,7 @@ function renderListings(listings) {
       ? `<div class="slide-nav">${imgs.map((_,i) => `<div class="slide-dot ${i===0?'active':''}" onclick="goSlide('${l.id}',${i},event)"></div>`).join('')}</div>` : '';
     const navBtns = imgs.length > 1
       ? `<button class="slide-btn prev" onclick="prevSlide('${l.id}',event)">‹</button><button class="slide-btn next" onclick="nextSlide('${l.id}',event)">›</button>` : '';
-    const imgCount = imgs.length > 1 ? `<div class="img-count">📷 ${imgs.length}</div>` : '';
+    const imgCount = '';
 
     const infoChips = [
       l.maintenanceFee && `<div class="chip">관리비 <span>${fmtKRW(l.maintenanceFee)}</span></div>`,
