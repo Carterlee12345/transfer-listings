@@ -85,7 +85,8 @@ body { font-family: 'Apple SD Gothic Neo', -apple-system, BlinkMacSystemFont, sa
 
 /* Card body */
 .card-body { padding: 20px 22px 22px; }
-.card-address { font-size: .93rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; line-height: 1.45; }
+.card-address { font-size: .93rem; font-weight: 700; color: #0f172a; margin-bottom: 16px; line-height: 1.45; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.listing-num { font-size: .72rem; font-weight: 800; color: #fff; background: #1e3a8a; border-radius: 5px; padding: 2px 7px; flex-shrink: 0; letter-spacing: .3px; }
 .price-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; background: #f4f6fb; border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
 .price-cell { padding: 12px 14px; }
 .price-cell:first-child { border-right: 1px solid #e2e8f0; }
@@ -389,7 +390,7 @@ function renderListings(listings) {
         ${navBtns}${dots}${imgCount}
       </div>
       <div class="card-body">
-        <div class="card-address">${l.address}</div>
+        <div class="card-address">${l.listingNumber ? `<span class="listing-num">No.${l.listingNumber}</span>` : ''}<span>${l.address}</span></div>
         ${roomChips ? `<div class="info-chips" style="margin-bottom:8px;">${roomChips}</div>` : ''}
         <div class="price-grid">
           <div class="price-cell">

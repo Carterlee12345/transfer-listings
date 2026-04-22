@@ -72,7 +72,7 @@ module.exports = async function handler(req, res) {
 
   // Create listing
   if (req.method === 'POST' && action === 'create') {
-    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, roomType, bathroom, stationName, walkingMinutes, tourUrl } = req.body || {};
+    const { address, locationTag, deposit, monthlyRent, maintenanceFee, facilityFee, annualRevenue, images, roomType, bathroom, stationName, walkingMinutes, tourUrl, listingNumber } = req.body || {};
     if (!address || !locationTag) return res.status(400).json({ error: '주소와 위치 태그는 필수입니다.' });
 
     const listing = {
@@ -89,6 +89,7 @@ module.exports = async function handler(req, res) {
       stationName: stationName || '',
       walkingMinutes: Number(walkingMinutes) || 0,
       tourUrl: tourUrl || '',
+      listingNumber: listingNumber || null,
       images: images || [],
       active: true,
       featured: false,
@@ -132,6 +133,7 @@ module.exports = async function handler(req, res) {
       ...(stationName !== undefined && { stationName }),
       ...(walkingMinutes !== undefined && { walkingMinutes: Number(walkingMinutes) }),
       ...(tourUrl !== undefined && { tourUrl }),
+      ...(listingNumber !== undefined && { listingNumber }),
       updatedAt: new Date().toISOString()
     };
 

@@ -286,9 +286,15 @@ tr:hover td { background: #f9fafb; }
       <button class="modal-close" onclick="closeListingModal()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-mb">
-        <label class="form-label">주소 *</label>
-        <input type="text" class="input" id="fAddress" placeholder="서울시 마포구 홍익로 1길 10, 101호" oninput="updateNaverLink()">
+      <div class="input-row form-mb">
+        <div style="flex:0 0 120px;">
+          <label class="form-label">매물 번호</label>
+          <input type="number" class="input" id="fListingNumber" placeholder="예: 1" min="1">
+        </div>
+        <div style="flex:1;">
+          <label class="form-label">주소 *</label>
+          <input type="text" class="input" id="fAddress" placeholder="서울시 마포구 홍익로 1길 10, 101호" oninput="updateNaverLink()">
+        </div>
       </div>
       <div class="form-mb">
         <label class="form-label">위치 태그 *</label>
@@ -558,11 +564,12 @@ async function openListingModal(id) {
     document.getElementById('fStationName').value = listing.stationName || '';
     document.getElementById('fWalkingMin').value = listing.walkingMinutes || '';
     document.getElementById('fTourUrl').value = listing.tourUrl || '';
+    document.getElementById('fListingNumber').value = listing.listingNumber || '';
     currentImages = listing.images || [];
     renderImgPreviews();
     updateNaverLink();
   } else {
-    ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue','fStationName','fWalkingMin'].forEach(f => document.getElementById(f).value = '');
+    ['fAddress','fDeposit','fMonthlyRent','fMaintenanceFee','fFacilityFee','fAnnualRevenue','fStationName','fWalkingMin','fListingNumber'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('fRoomType').value = '원룸';
     document.getElementById('fBathroom').value = '1개';
     document.getElementById('fTourUrl').value = '';
@@ -707,6 +714,7 @@ async function saveListing() {
     stationName: document.getElementById('fStationName').value.trim(),
     walkingMinutes: Number(document.getElementById('fWalkingMin').value) || 0,
     tourUrl: document.getElementById('fTourUrl').value.trim(),
+    listingNumber: Number(document.getElementById('fListingNumber').value) || null,
     images: currentImages
   };
   if (!body.address || !body.locationTag) return alert('주소와 위치 태그를 입력하세요.');
