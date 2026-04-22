@@ -490,7 +490,7 @@ function renderAdminListings() {
         ${l.featured ? '<div class="featured-badge">🔥 인기매물</div>' : ''}
       </div>
       <div class="listing-info">
-        <div class="listing-loc">📍 ${l.locationTag}</div>
+        <div class="listing-loc">📍 ${l.locationTag}${l.listingNumber ? ` &nbsp;<span style="background:#1e3a8a;color:#fff;font-size:.68rem;font-weight:800;padding:2px 7px;border-radius:5px;">No.${l.listingNumber}</span>` : ''}</div>
         <div class="listing-addr">${l.address}</div>
         <div class="listing-prices">
           <div class="lp-item">보증금 <strong>${fmtKRW(l.deposit)}</strong></div>
@@ -719,10 +719,16 @@ async function saveListing() {
   };
   if (!body.address || !body.locationTag) return alert('주소와 위치 태그를 입력하세요.');
 
-  if (editListingId) {
-    await fetch(`/api/listings?action=update&id=${editListingId}`, { method: 'PUT', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
-  } else {
-    await fetch('/api/listings?action=create', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
+  try {
+    const url = editListingId
+      ? `/api/listings?action=update&id=${editListingId}`
+      : '/api/listings?action=create';
+    const method = editListingId ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!res.ok) return alert('저장 실패: ' + (data.error || res.status));
+  } catch (e) {
+    return alert('저장 중 오류가 발생했습니다: ' + e.message);
   }
 
   closeListingModal();
