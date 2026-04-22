@@ -643,31 +643,33 @@ function renderImgPreviews() {
     <div class="img-preview-item" draggable="true" data-idx="${i}">
       <img src="${url}" alt="">
       <span class="img-order">${i + 1}</span>
-      <button class="img-remove" onclick="removeImg(${i})">✕</button>
+      <button class="img-remove" onclick="removeImg(${i});event.stopPropagation()">✕</button>
     </div>`).join('');
 
-  let dragSrc = null;
   grid.querySelectorAll('.img-preview-item').forEach(item => {
     item.addEventListener('dragstart', e => {
-      dragSrc = item;
-      item.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', item.dataset.idx);
       e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => item.classList.add('dragging'), 0);
     });
     item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      grid.querySelectorAll('.img-preview-item').forEach(el => el.classList.remove('drag-over'));
+      grid.querySelectorAll('.img-preview-item').forEach(el => {
+        el.classList.remove('dragging');
+        el.classList.remove('drag-over');
+      });
     });
     item.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       grid.querySelectorAll('.img-preview-item').forEach(el => el.classList.remove('drag-over'));
-      if (item !== dragSrc) item.classList.add('drag-over');
+      item.classList.add('drag-over');
     });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
     item.addEventListener('drop', e => {
       e.preventDefault();
-      if (!dragSrc || dragSrc === item) return;
-      const from = parseInt(dragSrc.dataset.idx);
+      const from = parseInt(e.dataTransfer.getData('text/plain'));
       const to = parseInt(item.dataset.idx);
+      if (from === to) return;
       const moved = currentImages.splice(from, 1)[0];
       currentImages.splice(to, 0, moved);
       renderImgPreviews();
