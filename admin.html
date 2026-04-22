@@ -112,10 +112,18 @@ tr:hover td { background: #f9fafb; }
 /* Image upload */
 .img-upload-area { border: 2px dashed #e5e7eb; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; transition: all .2s; }
 .img-upload-area:hover { border-color: #93c5fd; background: #f0f9ff; }
+.img-upload-area.uploading { border-color: #1e3a8a; background: #eff6ff; cursor: not-allowed; pointer-events: none; }
 .img-upload-area input { display: none; }
+.upload-progress { margin-top: 10px; }
+.upload-progress-bar-wrap { background: #e5e7eb; border-radius: 99px; height: 6px; overflow: hidden; margin: 8px 0 4px; }
+.upload-progress-bar { height: 100%; background: linear-gradient(90deg, #1e3a8a, #3b82f6); border-radius: 99px; transition: width .3s; }
+.upload-status { font-size: .78rem; color: #1e3a8a; font-weight: 600; }
 .img-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
 .img-preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
 .img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-preview-item.uploading-slot { background: #f0f4ff; display: flex; align-items: center; justify-content: center; font-size: .7rem; color: #6b7280; flex-direction: column; gap: 4px; }
+.spinner { width: 20px; height: 20px; border: 2px solid #e5e7eb; border-top-color: #1e3a8a; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .img-remove { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
 
 /* Locations */
@@ -308,10 +316,19 @@ tr:hover td { background: #f9fafb; }
       </div>
       <div class="form-mb">
         <label class="form-label">사진 (최대 14장)</label>
-        <div class="img-upload-area" onclick="document.getElementById('imgInput').click()">
+        <div class="img-upload-area" id="uploadArea" onclick="document.getElementById('imgInput').click()">
           <input type="file" id="imgInput" accept="image/*" multiple onchange="handleImgUpload(this)">
-          <div style="font-size:1.8rem;margin-bottom:6px;">📷</div>
-          <div style="font-size:.85rem;color:#6b7280;">클릭하여 사진 추가 (최대 14장)</div>
+          <div id="uploadIdle">
+            <div style="font-size:1.8rem;margin-bottom:6px;">📷</div>
+            <div style="font-size:.85rem;color:#6b7280;">클릭하여 사진 추가 (최대 14장)</div>
+          </div>
+          <div id="uploadingState" style="display:none;">
+            <div class="spinner" style="margin:0 auto 8px;"></div>
+            <div class="upload-status" id="uploadStatusText">업로드 중...</div>
+            <div class="upload-progress-bar-wrap">
+              <div class="upload-progress-bar" id="uploadProgressBar" style="width:0%"></div>
+            </div>
+          </div>
         </div>
         <div class="img-preview-grid" id="imgPreviewGrid"></div>
       </div>
@@ -518,25 +535,57 @@ async function handleImgUpload(input) {
   if (!remaining) return alert('최대 14장까지 업로드할 수 있습니다.');
   const toUpload = files.slice(0, remaining);
 
-  for (const file of toUpload) {
-    const base64 = await fileToBase64(file);
+  const area = document.getElementById('uploadArea');
+  const idle = document.getElementById('uploadIdle');
+  const uploading = document.getElementById('uploadingState');
+  const statusText = document.getElementById('uploadStatusText');
+  const progressBar = document.getElementById('uploadProgressBar');
+
+  area.classList.add('uploading');
+  idle.style.display = 'none';
+  uploading.style.display = 'block';
+
+  for (let i = 0; i < toUpload.length; i++) {
+    const file = toUpload[i];
+    statusText.textContent = `업로드 중... (${i + 1} / ${toUpload.length})`;
+    progressBar.style.width = `${Math.round((i / toUpload.length) * 100)}%`;
+
+    const base64 = await compressImage(file);
     const res = await fetch('/api/images', {
       method: 'POST',
       headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body: JSON.stringify({ filename: file.name, contentType: file.type, data: base64 })
+      body: JSON.stringify({ filename: file.name, contentType: 'image/jpeg', data: base64 })
     });
     const { url } = await res.json();
     if (url) currentImages.push(url);
+    renderImgPreviews();
   }
-  renderImgPreviews();
+
+  progressBar.style.width = '100%';
+  statusText.textContent = `완료! ${toUpload.length}장 업로드됨`;
+  await new Promise(r => setTimeout(r, 800));
+
+  area.classList.remove('uploading');
+  idle.style.display = 'block';
+  uploading.style.display = 'none';
+  progressBar.style.width = '0%';
   input.value = '';
 }
 
-function fileToBase64(file) {
+function compressImage(file, maxWidth = 1200, quality = 0.82) {
   return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => resolve(e.target.result.split(',')[1]);
-    reader.readAsDataURL(file);
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxWidth / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+    };
+    img.src = url;
   });
 }
 
